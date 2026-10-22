@@ -12,7 +12,6 @@ import com.example.proyecto_dsy1105.ui.screens.CatalogoScreen
 import com.example.proyecto_dsy1105.ui.screens.ImpactoScreen
 import com.example.proyecto_dsy1105.ui.screens.ColaboracionesScreen
 import com.example.proyecto_dsy1105.ui.screens.ContactoScreen
-import com.example.proyecto_dsy1105.ui.screens.PerfilScreen
 
 @Composable
 fun AppNavigation() {
@@ -24,41 +23,62 @@ fun AppNavigation() {
     ) {
         composable("inicio") {
             HomeScreen(
-                irNosotros = { navController.navigate("nosotros") },
-                irProgramas = { navController.navigate("programas") },
-                irCatalogo = { navController.navigate("catalogo") },
-                irImpacto = { navController.navigate("impacto") },
+                irNosotros = {
+                    navController.navigate("nosotros")
+                },
+                irProgramas = {
+                    navController.navigate("programas")
+                },
+                irCatalogo = {
+                    navController.navigate("catalogo")
+                },
+                irImpacto = {
+                    navController.navigate("impacto")
+                },
                 irColaboraciones = {
                     navController.navigate("colaboraciones")
                 },
-                irContacto = { navController.navigate("contacto") },
-                irPerfil = { navController.navigate("perfil") }
+                irContacto = {
+                    navController.navigate("contacto")
+                }
             )
         }
 
         composable("nosotros") {
             NosotrosScreen(
-                volver = { navController.popBackStack() }
+                volver = {
+                    navController.popBackStack()
+                }
             )
         }
 
         composable("programas") {
             ProgramasScreen(
-                volver = { navController.popBackStack() },
-                irContacto = { navController.navigate("contacto") }
+                volver = {
+                    navController.popBackStack()
+                },
+                irContacto = {
+                    navController.navigate("contacto")
+                }
             )
         }
 
         composable("catalogo") {
             CatalogoScreen(
-                volver = { navController.popBackStack() },
-                irContacto = { navController.navigate("contacto") }
+                volver = {
+                    navController.popBackStack()
+                },
+                irContacto = {
+                    navController.navigate("contacto")
+                }
             )
         }
 
         composable("impacto") {
             ImpactoScreen(
-                volver = { navController.popBackStack() },
+                volver = {
+                    navController.popBackStack()
+                },
                 irColaboraciones = {
                     navController.navigate("colaboraciones")
                 }
@@ -67,20 +87,20 @@ fun AppNavigation() {
 
         composable("colaboraciones") {
             ColaboracionesScreen(
-                volver = { navController.popBackStack() },
-                irContacto = { navController.navigate("contacto") }
+                volver = {
+                    navController.popBackStack()
+                },
+                irContacto = {
+                    navController.navigate("contacto")
+                }
             )
         }
 
         composable("contacto") {
             ContactoScreen(
-                volver = { navController.popBackStack() }
-            )
-        }
-
-        composable("perfil") {
-            PerfilScreen(
-                volver = { navController.popBackStack() }
+                volver = {
+                    navController.popBackStack()
+                }
             )
         }
     }

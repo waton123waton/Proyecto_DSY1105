@@ -2,12 +2,16 @@ package com.example.proyecto_dsy1105.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.proyecto_dsy1105.ui.theme.NegroPrincipal
+import com.example.proyecto_dsy1105.ui.theme.RojoPrincipal
 
 @Composable
 fun ImpactoScreen(
@@ -18,22 +22,42 @@ fun ImpactoScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = "Nuestro impacto social",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = NegroPrincipal
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "IMPACTO SOCIAL",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = RojoPrincipal
+                )
 
-        Text(
-            text = "CORPALIV y Alba Lab promueven la autonomía, " +
-                    "la participación y la inclusión social y laboral " +
-                    "de personas con discapacidad múltiple."
-        )
+                Text(
+                    text = "Cada oportunidad cuenta",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
 
-        HorizontalDivider()
+                Text(
+                    text = "Conoce las áreas donde CORPALIV y Alba Lab " +
+                            "promueven la autonomía, participación " +
+                            "e inclusión social y laboral.",
+                    color = Color.White
+                )
+            }
+        }
 
         Text(
             text = "Áreas de impacto",
@@ -41,25 +65,26 @@ fun ImpactoScreen(
             fontWeight = FontWeight.Bold
         )
 
-        ImpactoItem(
+        ImpactoCard(
+            numero = "01",
             titulo = "Formación",
-            descripcion = "Iniciativas de desarrollo de habilidades " +
-                    "y preparación para el empleo."
+            descripcion = "Desarrollo de habilidades y preparación " +
+                    "para acceder a oportunidades laborales."
         )
 
-        ImpactoItem(
+        ImpactoCard(
+            numero = "02",
             titulo = "Inclusión laboral",
-            descripcion = "Promoción de oportunidades de participación " +
-                    "y vinculación con el mundo del trabajo."
+            descripcion = "Promoción de la participación y " +
+                    "vinculación con el mundo del trabajo."
         )
 
-        ImpactoItem(
+        ImpactoCard(
+            numero = "03",
             titulo = "Participación social",
-            descripcion = "Acciones que buscan fortalecer la autonomía " +
-                    "y la integración en la comunidad."
+            descripcion = "Iniciativas orientadas a fortalecer " +
+                    "la autonomía y la integración comunitaria."
         )
-
-        HorizontalDivider()
 
         Text(
             text = "Indicadores de impacto",
@@ -67,46 +92,69 @@ fun ImpactoScreen(
             fontWeight = FontWeight.Bold
         )
 
+        IndicadorCard(
+            titulo = "Personas beneficiadas",
+            valor = "Por confirmar"
+        )
+
+        IndicadorCard(
+            titulo = "Programas desarrollados",
+            valor = "Por confirmar"
+        )
+
+        IndicadorCard(
+            titulo = "Alianzas empresariales",
+            valor = "Por confirmar"
+        )
+
+        Text(
+            text = "Los indicadores se actualizarán cuando " +
+                    "CORPALIV proporcione información autorizada.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Personas beneficiadas: Datos por confirmar")
-                Text("Programas desarrollados: Datos por confirmar")
-                Text("Alianzas empresariales: Datos por confirmar")
+                Text(
+                    text = "Historias de impacto",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = NegroPrincipal
+                )
+
+                Text(
+                    text = "Este espacio permitirá compartir " +
+                            "experiencias y casos de éxito autorizados " +
+                            "y anonimizados.",
+                    color = NegroPrincipal
+                )
+
+                HorizontalDivider()
+
+                Text(
+                    text = "¿Quieres ser parte del cambio?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = NegroPrincipal
+                )
+
+                Button(
+                    onClick = irColaboraciones,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Conoce cómo colaborar")
+                }
             }
-        }
-
-        Text(
-            text = "Los indicadores oficiales se incorporarán " +
-                    "cuando CORPALIV autorice su publicación.",
-            style = MaterialTheme.typography.bodySmall
-        )
-
-        HorizontalDivider()
-
-        Text(
-            text = "Historias de impacto",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            text = "Este espacio permitirá presentar experiencias " +
-                    "y casos de éxito previamente autorizados " +
-                    "y anonimizados."
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = irColaboraciones,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Conoce cómo colaborar")
         }
 
         OutlinedButton(
@@ -115,30 +163,82 @@ fun ImpactoScreen(
         ) {
             Text("Volver")
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
 @Composable
-private fun ImpactoItem(
+private fun ImpactoCard(
+    numero: String,
     titulo: String,
     descripcion: String
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 3.dp
+        ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = titulo,
+                text = numero,
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = RojoPrincipal
+            )
+
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
                 text = descripcion,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun IndicadorCard(
+    titulo: String,
+    valor: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
+            )
+
+            Text(
+                text = valor,
+                style = MaterialTheme.typography.labelLarge,
+                color = RojoPrincipal,
+                fontWeight = FontWeight.Bold
             )
         }
     }
