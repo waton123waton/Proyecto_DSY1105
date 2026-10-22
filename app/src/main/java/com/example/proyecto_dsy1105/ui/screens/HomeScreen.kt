@@ -27,7 +27,8 @@ fun HomeScreen(
     irCatalogo: () -> Unit,
     irImpacto: () -> Unit,
     irColaboraciones: () -> Unit,
-    irContacto: () -> Unit
+    irContacto: () -> Unit,
+    irPerfil: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -160,6 +161,13 @@ fun HomeScreen(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                MenuCard(
+                    titulo = "Perfil y cámara",
+                    icono = Icons.Default.CameraAlt,
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = irPerfil
+                )
+
                 Text(
                     text = "Tu colaboración importa",
                     style = MaterialTheme.typography.titleLarge,

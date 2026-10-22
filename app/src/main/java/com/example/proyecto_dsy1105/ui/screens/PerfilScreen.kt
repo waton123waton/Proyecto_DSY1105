@@ -1,36 +1,22 @@
+
 package com.example.proyecto_dsy1105.ui.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Collections
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto_dsy1105.data.CamaraUriFactory
 import com.example.proyecto_dsy1105.ui.components.ImagenInteligente
 import com.example.proyecto_dsy1105.viewmodel.PerfilViewModel
+import java.io.File
 
 @Composable
 fun PerfilScreen(
@@ -49,32 +36,83 @@ fun PerfilScreen(
     perfilViewModel: PerfilViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val imagenUri by perfilViewModel.imagenUri.collectAsState()
 
-    // Uri donde la cámara guardará la foto (sobrevive a rotaciones de pantalla)
-    var uriPendienteCamara by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val imagenViewModel by perfilViewModel.imagenUri.collectAsState()
 
-    val galeriaLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uriSeleccionado ->
-        perfilViewModel.actualizarImagenDesdeGaleria(uriSeleccionado)
+    // Recuperar la foto guardada anteriormente
+    var imagenGuardada by remember {
+        mutableStateOf(cargarImagenPerfil(context))
     }
 
-    val camaraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { exito ->
-        perfilViewModel.actualizarImagenDesdeCamara(uriPendienteCamara, exito)
-        if (!exito) {
-            uriPendienteCamara = null
+    // Utilizar la foto guardada si existe
+    val imagenUri = imagenGuardada ?: imagenViewModel
+
+    var uriPendienteCamara by rememberSaveable {
+        mutableStateOf<Uri?>(null)
+    }
+
+    // Guardar una copia permanente de la imagen
+    fun actualizarFoto(uri: Uri?) {
+        if (uri != null) {
+            try {
+                val nuevaUri = guardarImagenPerfil(context, uri)
+                imagenGuardada = nuevaUri
+
+                Toast.makeText(
+                    context,
+                    "Foto de perfil guardada",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "No se pudo guardar la foto: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
-    // Abre la cámara creando primero el archivo temporal donde se guardará la foto
+    // Seleccionar imagen desde galería
+    val galeriaLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uriSeleccionado ->
+
+        if (uriSeleccionado != null) {
+            perfilViewModel.actualizarImagenDesdeGaleria(
+                uriSeleccionado
+            )
+
+            actualizarFoto(uriSeleccionado)
+        }
+    }
+
+    // Tomar fotografía
+    val camaraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { exito ->
+
+        perfilViewModel.actualizarImagenDesdeCamara(
+            uriPendienteCamara,
+            exito
+        )
+
+        if (exito) {
+            actualizarFoto(uriPendienteCamara)
+        }
+
+        uriPendienteCamara = null
+    }
+
+    // Abrir cámara
     fun abrirCamara() {
         try {
             val uri = CamaraUriFactory.crearUri(context)
+
             uriPendienteCamara = uri
             camaraLauncher.launch(uri)
+
         } catch (e: Exception) {
             Toast.makeText(
                 context,
@@ -84,22 +122,22 @@ fun PerfilScreen(
         }
     }
 
-    // Solicita el permiso si todavía no está concedido
+    // Solicitar permiso de cámara
     val permisoCamaraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { concedido ->
+
         if (concedido) {
             abrirCamara()
         } else {
             Toast.makeText(
                 context,
-                "Debes conceder el permiso de cámara en Ajustes.",
+                "Debes conceder el permiso de cámara.",
                 Toast.LENGTH_LONG
             ).show()
         }
     }
 
-    // Comprueba el permiso antes de abrir la cámara
     fun tomarFotografia() {
         val permisoConcedido = ContextCompat.checkSelfPermission(
             context,
@@ -109,7 +147,9 @@ fun PerfilScreen(
         if (permisoConcedido) {
             abrirCamara()
         } else {
-            permisoCamaraLauncher.launch(Manifest.permission.CAMERA)
+            permisoCamaraLauncher.launch(
+                Manifest.permission.CAMERA
+            )
         }
     }
 
@@ -117,10 +157,14 @@ fun PerfilScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 28.dp),
+            .padding(
+                horizontal = 24.dp,
+                vertical = 28.dp
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+
         Text(
             text = "Mi perfil",
             style = MaterialTheme.typography.headlineMedium,
@@ -144,7 +188,9 @@ fun PerfilScreen(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 3.dp
+            )
         ) {
             Column(
                 modifier = Modifier
@@ -152,7 +198,10 @@ fun PerfilScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                ImagenInteligente(imagenUri = imagenUri)
+
+                ImagenInteligente(
+                    imagenUri = imagenUri
+                )
 
                 Spacer(modifier = Modifier.height(18.dp))
 
@@ -160,7 +209,7 @@ fun PerfilScreen(
                     text = if (imagenUri == null) {
                         "Aún no has seleccionado una imagen"
                     } else {
-                        "Imagen de perfil actualizada"
+                        "Imagen de perfil guardada"
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
@@ -169,26 +218,32 @@ fun PerfilScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick = { galeriaLauncher.launch("image/*") },
+                    onClick = {
+                        galeriaLauncher.launch("image/*")
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Collections,
-                        contentDescription = "Galería"
+                        contentDescription = null
                     )
+
                     Text("  Elegir desde galería")
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedButton(
-                    onClick = { tomarFotografia() },
+                    onClick = {
+                        tomarFotografia()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
                         imageVector = Icons.Filled.CameraAlt,
-                        contentDescription = "Cámara"
+                        contentDescription = null
                     )
+
                     Text("  Tomar fotografía")
                 }
             }
@@ -197,7 +252,8 @@ fun PerfilScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Puedes cambiar la imagen cuando quieras.",
+            text = "Tu foto se conservará aunque cierres " +
+                    "la aplicación o cambies de pantalla.",
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -212,4 +268,78 @@ fun PerfilScreen(
             Text("Volver")
         }
     }
+}
+
+// Recuperar imagen guardada
+private fun cargarImagenPerfil(context: Context): Uri? {
+    val preferencias = context.getSharedPreferences(
+        "perfil_preferencias",
+        Context.MODE_PRIVATE
+    )
+
+    val nombreArchivo = preferencias.getString(
+        "foto_perfil",
+        null
+    ) ?: return null
+
+    val archivo = File(context.filesDir, nombreArchivo)
+
+    return if (archivo.exists()) {
+        Uri.fromFile(archivo)
+    } else {
+        null
+    }
+}
+
+// Guardar imagen permanentemente
+private fun guardarImagenPerfil(
+    context: Context,
+    uri: Uri
+): Uri {
+
+    val preferencias = context.getSharedPreferences(
+        "perfil_preferencias",
+        Context.MODE_PRIVATE
+    )
+
+    val anterior = preferencias.getString(
+        "foto_perfil",
+        null
+    )
+
+    val nombreArchivo = "perfil_${System.nanoTime()}.jpg"
+
+    val archivo = File(
+        context.filesDir,
+        nombreArchivo
+    )
+
+    try {
+        val entrada = context.contentResolver.openInputStream(uri)
+            ?: throw Exception("No se pudo abrir la imagen")
+
+        entrada.use { input ->
+            archivo.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        if (!preferencias.edit()
+                .putString("foto_perfil", nombreArchivo)
+                .commit()
+        ) {
+            throw Exception("No se pudo registrar la imagen")
+        }
+
+    } catch (e: Exception) {
+        archivo.delete()
+        throw e
+    }
+
+    // Eliminar la imagen anterior después de guardar la nueva
+    if (anterior != null && anterior != nombreArchivo) {
+        File(context.filesDir, anterior).delete()
+    }
+
+    return Uri.fromFile(archivo)
 }
