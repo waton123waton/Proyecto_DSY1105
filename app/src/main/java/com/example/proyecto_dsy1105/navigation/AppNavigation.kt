@@ -1,27 +1,31 @@
 package com.example.proyecto_dsy1105.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-import com.example.proyecto_dsy1105.ui.screens.HomeScreen
-import com.example.proyecto_dsy1105.ui.screens.NosotrosScreen
-import com.example.proyecto_dsy1105.ui.screens.ProgramasScreen
-import com.example.proyecto_dsy1105.ui.screens.CatalogoScreen
-import com.example.proyecto_dsy1105.ui.screens.ImpactoScreen
-import com.example.proyecto_dsy1105.ui.screens.ColaboracionesScreen
-import com.example.proyecto_dsy1105.ui.screens.ContactoScreen
-import com.example.proyecto_dsy1105.ui.screens.PerfilScreen
+import com.example.proyecto_dsy1105.ui.screens.*
+import com.example.proyecto_dsy1105.viewmodel.AuthViewModel
 
 @Composable
 fun AppNavigation() {
+
     val navController = rememberNavController()
+
+    // Compartir el mismo ViewModel entre las pantallas
+    val authViewModel: AuthViewModel = viewModel()
+    val estadoAuth by authViewModel.uiState.collectAsState()
 
     NavHost(
         navController = navController,
         startDestination = "inicio"
     ) {
+
         composable("inicio") {
             HomeScreen(
                 irNosotros = {
@@ -43,7 +47,11 @@ fun AppNavigation() {
                     navController.navigate("contacto")
                 },
                 irPerfil = {
-                    navController.navigate("perfil")
+                    if (estadoAuth.usuario != null) {
+                        navController.navigate("perfil")
+                    } else {
+                        navController.navigate("login")
+                    }
                 }
             )
         }
@@ -96,10 +104,64 @@ fun AppNavigation() {
             )
         }
 
-        composable("perfil") {
-            PerfilScreen(
-                volver = { navController.popBackStack() }
+        // Inicio de sesión
+        composable("login") {
+            LoginScreen(
+                authViewModel = authViewModel,
+                volver = {
+                    navController.popBackStack()
+                },
+                irRegistro = {
+                    navController.navigate("registro")
+                },
+                irPerfil = {
+                    navController.navigate("perfil") {
+                        popUpTo("login") {
+                            inclusive = true
+                        }
+                    }
+                }
             )
+        }
+
+        // Crear una cuenta
+        composable("registro") {
+            RegistroUsuarioScreen(
+                authViewModel = authViewModel,
+                volver = {
+                    navController.popBackStack()
+                },
+                irLogin = {
+                    navController.navigate("login") {
+                        popUpTo("registro") {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        // Perfil con acceso restringido
+        composable("perfil") {
+            if (estadoAuth.usuario != null) {
+
+                PerfilScreen(
+                    volver = {
+                        navController.popBackStack()
+                    }
+                )
+
+            } else {
+
+                LaunchedEffect(Unit) {
+                    navController.navigate("login") {
+                        popUpTo("perfil") {
+                            inclusive = true
+                        }
+                    }
+                }
+            }
         }
     }
 }

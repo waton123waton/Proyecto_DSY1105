@@ -1,4 +1,3 @@
-
 package com.example.proyecto_dsy1105.ui.screens
 
 import android.Manifest
@@ -10,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
@@ -27,36 +27,37 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyecto_dsy1105.data.CamaraUriFactory
 import com.example.proyecto_dsy1105.ui.components.ImagenInteligente
+import com.example.proyecto_dsy1105.ui.theme.NegroPrincipal
+import com.example.proyecto_dsy1105.ui.theme.RojoPrincipal
 import com.example.proyecto_dsy1105.viewmodel.PerfilViewModel
 import java.io.File
 
 @Composable
 fun PerfilScreen(
     volver: () -> Unit,
+    nombreUsuario: String,
+    correoUsuario: String,
+    cerrarSesion: () -> Unit,
     perfilViewModel: PerfilViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
     val imagenViewModel by perfilViewModel.imagenUri.collectAsState()
 
-    // Recuperar la foto guardada anteriormente
     var imagenGuardada by remember {
         mutableStateOf(cargarImagenPerfil(context))
     }
 
-    // Utilizar la foto guardada si existe
     val imagenUri = imagenGuardada ?: imagenViewModel
 
     var uriPendienteCamara by rememberSaveable {
         mutableStateOf<Uri?>(null)
     }
 
-    // Guardar una copia permanente de la imagen
     fun actualizarFoto(uri: Uri?) {
         if (uri != null) {
             try {
-                val nuevaUri = guardarImagenPerfil(context, uri)
-                imagenGuardada = nuevaUri
+                imagenGuardada = guardarImagenPerfil(context, uri)
 
                 Toast.makeText(
                     context,
@@ -67,14 +68,13 @@ fun PerfilScreen(
             } catch (e: Exception) {
                 Toast.makeText(
                     context,
-                    "No se pudo guardar la foto: ${e.message}",
+                    "No se pudo guardar la fotografía",
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
     }
 
-    // Seleccionar imagen desde galería
     val galeriaLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uriSeleccionado ->
@@ -88,7 +88,6 @@ fun PerfilScreen(
         }
     }
 
-    // Tomar fotografía
     val camaraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { exito ->
@@ -105,11 +104,9 @@ fun PerfilScreen(
         uriPendienteCamara = null
     }
 
-    // Abrir cámara
     fun abrirCamara() {
         try {
             val uri = CamaraUriFactory.crearUri(context)
-
             uriPendienteCamara = uri
             camaraLauncher.launch(uri)
 
@@ -122,7 +119,6 @@ fun PerfilScreen(
         }
     }
 
-    // Solicitar permiso de cámara
     val permisoCamaraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { concedido ->
@@ -157,109 +153,135 @@ fun PerfilScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(
-                horizontal = 24.dp,
-                vertical = 28.dp
-            ),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-        Text(
-            text = "Mi perfil",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Personaliza tu imagen de perfil",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = NegroPrincipal
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "CORPALIV · ALBA LAB",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = RojoPrincipal,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Mi perfil",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = androidx.compose.ui.graphics.Color.White
+                )
+
+                Text(
+                    text = "Administra tu cuenta y personaliza " +
+                            "tu fotografía.",
+                    color = androidx.compose.ui.graphics.Color.White
+                )
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(3.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 3.dp
             )
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
                 ImagenInteligente(
                     imagenUri = imagenUri
                 )
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Text(
+                    text = nombreUsuario,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+
+                Text(
+                    text = correoUsuario,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
 
                 Text(
                     text = if (imagenUri == null) {
                         "Aún no has seleccionado una imagen"
                     } else {
-                        "Imagen de perfil guardada"
+                        "Fotografía de perfil guardada"
                     },
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider()
 
                 Button(
                     onClick = {
                         galeriaLauncher.launch("image/*")
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 50.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Collections,
                         contentDescription = null
                     )
 
-                    Text("  Elegir desde galería")
-                }
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Text("Elegir desde galería")
+                }
 
                 OutlinedButton(
                     onClick = {
                         tomarFotografia()
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 50.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.CameraAlt,
                         contentDescription = null
                     )
 
-                    Text("  Tomar fotografía")
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text("Tomar fotografía")
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
         Text(
-            text = "Tu foto se conservará aunque cierres " +
-                    "la aplicación o cambies de pantalla.",
+            text = "Tu fotografía se conservará al cambiar " +
+                    "de pantalla o cerrar la aplicación.",
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedButton(
             onClick = volver,
@@ -267,10 +289,26 @@ fun PerfilScreen(
         ) {
             Text("Volver")
         }
+
+        Button(
+            onClick = cerrarSesion,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 52.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = RojoPrincipal
+            )
+        ) {
+            Text(
+                text = "Cerrar sesión",
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
-// Recuperar imagen guardada
 private fun cargarImagenPerfil(context: Context): Uri? {
     val preferencias = context.getSharedPreferences(
         "perfil_preferencias",
@@ -291,12 +329,10 @@ private fun cargarImagenPerfil(context: Context): Uri? {
     }
 }
 
-// Guardar imagen permanentemente
 private fun guardarImagenPerfil(
     context: Context,
     uri: Uri
 ): Uri {
-
     val preferencias = context.getSharedPreferences(
         "perfil_preferencias",
         Context.MODE_PRIVATE
@@ -309,10 +345,7 @@ private fun guardarImagenPerfil(
 
     val nombreArchivo = "perfil_${System.nanoTime()}.jpg"
 
-    val archivo = File(
-        context.filesDir,
-        nombreArchivo
-    )
+    val archivo = File(context.filesDir, nombreArchivo)
 
     try {
         val entrada = context.contentResolver.openInputStream(uri)
@@ -324,11 +357,12 @@ private fun guardarImagenPerfil(
             }
         }
 
-        if (!preferencias.edit()
-                .putString("foto_perfil", nombreArchivo)
-                .commit()
-        ) {
-            throw Exception("No se pudo registrar la imagen")
+        val guardado = preferencias.edit()
+            .putString("foto_perfil", nombreArchivo)
+            .commit()
+
+        if (!guardado) {
+            throw Exception("No se pudo registrar la fotografía")
         }
 
     } catch (e: Exception) {
@@ -336,7 +370,6 @@ private fun guardarImagenPerfil(
         throw e
     }
 
-    // Eliminar la imagen anterior después de guardar la nueva
     if (anterior != null && anterior != nombreArchivo) {
         File(context.filesDir, anterior).delete()
     }
