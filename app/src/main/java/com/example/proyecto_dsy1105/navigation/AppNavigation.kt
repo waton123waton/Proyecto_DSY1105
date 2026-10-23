@@ -144,11 +144,23 @@ fun AppNavigation() {
 
         // Perfil con acceso restringido
         composable("perfil") {
-            if (estadoAuth.usuario != null) {
+            val usuario = estadoAuth.usuario
+
+            if (usuario != null) {
 
                 PerfilScreen(
                     volver = {
                         navController.popBackStack()
+                    },
+                    nombreUsuario = usuario.nombre,
+                    correoUsuario = usuario.correo,
+                    cerrarSesion = {
+                        navController.navigate("inicio") {
+                            popUpTo("inicio") {
+                                inclusive = true
+                            }
+                        }
+                        authViewModel.cerrarSesion()
                     }
                 )
 
