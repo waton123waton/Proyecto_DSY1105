@@ -1,10 +1,13 @@
 package com.example.proyecto_dsy1105.repository
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.util.Base64
+import com.example.proyecto_dsy1105.model.RolUsuario
 import com.example.proyecto_dsy1105.model.Usuario
 import org.json.JSONArray
 import org.json.JSONObject
+import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -16,13 +19,17 @@ enum class ResultadoRegistro {
     ERROR_GUARDADO
 }
 
-class UsuarioRepository(context: Context) {
+class UsuarioRepository(
+    private val context: Context
+) {
 
     private val preferencias = context.applicationContext
         .getSharedPreferences(
             "usuarios_corpaliv",
             Context.MODE_PRIVATE
         )
+
+    private val claveUsuarios = "usuarios"
 
     private fun normalizarCorreo(correo: String): String {
         return correo.trim().lowercase()
@@ -36,7 +43,11 @@ class UsuarioRepository(context: Context) {
     }
 
     private fun obtenerUsuarios(): List<Usuario> {
-        val datos = preferencias.getString("usuarios", "[]")
+        val datos = preferencias.getString(
+            claveUsuarios,
+            "[]"
+        ) ?: "[]"
+
         val lista = mutableListOf<Usuario>()
 
         try {
@@ -45,25 +56,66 @@ class UsuarioRepository(context: Context) {
             for (i in 0 until arreglo.length()) {
                 val objeto = arreglo.getJSONObject(i)
 
+                val rolGuardado = objeto.optString(
+                    "rol",
+                    RolUsuario.USUARIO.name
+                )
+
+                val rol = RolUsuario.entries.find {
+                    it.name == rolGuardado
+                } ?: RolUsuario.USUARIO
+
                 lista.add(
                     Usuario(
                         id = objeto.getLong("id"),
                         nombre = objeto.getString("nombre"),
                         rut = objeto.getString("rut"),
                         correo = objeto.getString("correo"),
-                        passwordHash = objeto.getString("passwordHash"),
-                        passwordSalt = objeto.getString("passwordSalt")
+                        passwordHash = objeto.getString(
+                            "passwordHash"
+                        ),
+                        passwordSalt = objeto.getString(
+                            "passwordSalt"
+                        ),
+                        rol = rol
                     )
                 )
             }
         } catch (e: Exception) {
             throw IllegalStateException(
-                "No se pudieron leer los usuarios guardados",
+                "No se pudieron recuperar los usuarios.",
                 e
             )
         }
 
         return lista
+    }
+
+    private fun guardarUsuarios(
+        usuarios: List<Usuario>
+    ): Boolean {
+        val arreglo = JSONArray()
+
+        usuarios.forEach { usuario ->
+            val objeto = JSONObject().apply {
+                put("id", usuario.id)
+                put("nombre", usuario.nombre)
+                put("rut", usuario.rut)
+                put("correo", usuario.correo)
+                put("passwordHash", usuario.passwordHash)
+                put("passwordSalt", usuario.passwordSalt)
+                put("rol", usuario.rol.name)
+            }
+
+            arreglo.put(objeto)
+        }
+
+        return preferencias.edit()
+            .putString(
+                claveUsuarios,
+                arreglo.toString()
+            )
+            .commit()
     }
 
     fun existeRut(rut: String): Boolean {
@@ -84,6 +136,7 @@ class UsuarioRepository(context: Context) {
 
     private fun crearSalt(): String {
         val bytes = ByteArray(16)
+
         SecureRandom().nextBytes(bytes)
 
         return Base64.encodeToString(
@@ -111,7 +164,9 @@ class UsuarioRepository(context: Context) {
         return try {
             val resultado = SecretKeyFactory.getInstance(
                 "PBKDF2WithHmacSHA256"
-            ).generateSecret(especificacion).encoded
+            ).generateSecret(
+                especificacion
+            ).encoded
 
             Base64.encodeToString(
                 resultado,
@@ -129,50 +184,49 @@ class UsuarioRepository(context: Context) {
         correo: String,
         contrasena: String
     ): ResultadoRegistro {
-
         val usuarios = obtenerUsuarios().toMutableList()
+
         val rutNormalizado = normalizarRut(rut)
         val correoNormalizado = normalizarCorreo(correo)
 
-        if (usuarios.any { it.rut == rutNormalizado }) {
+        if (
+            usuarios.any {
+                it.rut == rutNormalizado
+            }
+        ) {
             return ResultadoRegistro.RUT_EXISTENTE
         }
 
-        if (usuarios.any { it.correo == correoNormalizado }) {
+        if (
+            usuarios.any {
+                it.correo == correoNormalizado
+            }
+        ) {
             return ResultadoRegistro.CORREO_EXISTENTE
         }
 
         val salt = crearSalt()
 
         val nuevoUsuario = Usuario(
-            id = (usuarios.maxOfOrNull { it.id } ?: 0L) + 1L,
+            id = (
+                    usuarios.maxOfOrNull {
+                        it.id
+                    } ?: 0L
+                    ) + 1L,
             nombre = nombre.trim(),
             rut = rutNormalizado,
             correo = correoNormalizado,
-            passwordHash = crearHash(contrasena, salt),
-            passwordSalt = salt
+            passwordHash = crearHash(
+                contrasena,
+                salt
+            ),
+            passwordSalt = salt,
+            rol = RolUsuario.USUARIO
         )
 
         usuarios.add(nuevoUsuario)
 
-        val arreglo = JSONArray()
-
-        usuarios.forEach { usuario ->
-            val objeto = JSONObject().apply {
-                put("id", usuario.id)
-                put("nombre", usuario.nombre)
-                put("rut", usuario.rut)
-                put("correo", usuario.correo)
-                put("passwordHash", usuario.passwordHash)
-                put("passwordSalt", usuario.passwordSalt)
-            }
-
-            arreglo.put(objeto)
-        }
-
-        val guardado = preferencias.edit()
-            .putString("usuarios", arreglo.toString())
-            .commit()
+        val guardado = guardarUsuarios(usuarios)
 
         return if (guardado) {
             ResultadoRegistro.EXITO
@@ -185,13 +239,15 @@ class UsuarioRepository(context: Context) {
         correo: String,
         contrasena: String
     ): Usuario? {
-
         val usuario = obtenerUsuarios().find {
             it.correo == normalizarCorreo(correo)
         } ?: return null
 
         val hashIngresado = Base64.decode(
-            crearHash(contrasena, usuario.passwordSalt),
+            crearHash(
+                contrasena,
+                usuario.passwordSalt
+            ),
             Base64.NO_WRAP
         )
 
@@ -201,7 +257,7 @@ class UsuarioRepository(context: Context) {
         )
 
         return if (
-            java.security.MessageDigest.isEqual(
+            MessageDigest.isEqual(
                 hashIngresado,
                 hashGuardado
             )
@@ -210,5 +266,48 @@ class UsuarioRepository(context: Context) {
         } else {
             null
         }
+    }
+
+    @Synchronized
+    fun habilitarAdministradorDePrueba(
+        correo: String,
+        contrasena: String
+    ): Boolean {
+        val esDebug = (
+                context.applicationInfo.flags and
+                        ApplicationInfo.FLAG_DEBUGGABLE
+                ) != 0
+
+        if (!esDebug) {
+            return false
+        }
+
+        val usuario = iniciarSesion(
+            correo = correo,
+            contrasena = contrasena
+        ) ?: return false
+
+        val usuarios = obtenerUsuarios().toMutableList()
+
+        val indice = usuarios.indexOfFirst {
+            it.id == usuario.id
+        }
+
+        if (indice == -1) {
+            return false
+        }
+
+        if (
+            usuarios[indice].rol ==
+            RolUsuario.ADMINISTRADOR
+        ) {
+            return true
+        }
+
+        usuarios[indice] = usuarios[indice].copy(
+            rol = RolUsuario.ADMINISTRADOR
+        )
+
+        return guardarUsuarios(usuarios)
     }
 }

@@ -1,6 +1,6 @@
 package com.example.proyecto_dsy1105.ui.screens
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,8 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.proyecto_dsy1105.ui.theme.NegroPrincipal
-import com.example.proyecto_dsy1105.ui.theme.RojoPrincipal
+import com.example.proyecto_dsy1105.ui.theme.*
 
 @Composable
 fun HomeScreen(
@@ -30,36 +29,67 @@ fun HomeScreen(
     irContacto: () -> Unit,
     irPerfil: () -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        Text(
-            text = "CORPALIV",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
 
-        Text(
-            text = "ALBA LAB",
-            style = MaterialTheme.typography.labelLarge,
-            color = RojoPrincipal
-        )
+        // MENSAJE DE BIENVENIDA
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+
+            Text(
+                text = "Bienvenido a Alba Lab",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = NegroPrincipal
+            )
+
+            Text(
+                text = "Conoce nuestros programas, iniciativas " +
+                        "y oportunidades de colaboración.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GrisTexto
+            )
+        }
+
+        // TARJETA PRINCIPAL
 
         Card(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = NegroPrincipal
-            ),
-            modifier = Modifier.fillMaxWidth()
+            )
         ) {
+
             Column(
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+
+                Surface(
+                    color = RojoPrincipal,
+                    shape = RoundedCornerShape(50.dp)
+                ) {
+                    Text(
+                        text = "INCLUSIÓN SOCIAL Y LABORAL",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(
+                            horizontal = 12.dp,
+                            vertical = 8.dp
+                        )
+                    )
+                }
+
                 Text(
                     text = "Construyendo oportunidades",
                     style = MaterialTheme.typography.headlineMedium,
@@ -68,8 +98,9 @@ fun HomeScreen(
                 )
 
                 Text(
-                    text = "Promovemos la inclusión social y laboral " +
-                            "de personas con discapacidad múltiple.",
+                    text = "Promovemos la autonomía, la participación " +
+                            "y la inclusión de personas con " +
+                            "discapacidad múltiple.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )
@@ -77,157 +108,220 @@ fun HomeScreen(
                 Button(
                     onClick = irNosotros,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RojoPrincipal
-                    )
+                        containerColor = RojoPrincipal,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Conócenos")
-                    Spacer(Modifier.width(8.dp))
+
+                    Text(
+                        text = "Conoce CORPALIV",
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
+                        imageVector =
+                            Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null
                     )
                 }
             }
         }
 
-        Text(
-            text = "Explora CORPALIV",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
+        // EXPLORAR
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            MenuCard(
-                titulo = "Nosotros",
-                icono = Icons.Default.Info,
-                modifier = Modifier.weight(1f),
-                onClick = irNosotros
+
+            Text(
+                text = "Descubre más",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = NegroPrincipal
             )
 
-            MenuCard(
-                titulo = "Programas",
-                icono = Icons.Default.School,
-                modifier = Modifier.weight(1f),
-                onClick = irProgramas
+            Text(
+                text = "Explora nuestras iniciativas y conoce " +
+                        "cómo puedes participar.",
+                style = MaterialTheme.typography.bodySmall,
+                color = GrisTexto
             )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
+                AccesoInicioCard(
+                    titulo = "Quiénes somos",
+                    descripcion = "Nuestra misión",
+                    icono = Icons.Default.Info,
+                    modifier = Modifier.weight(1f),
+                    onClick = irNosotros
+                )
+
+                AccesoInicioCard(
+                    titulo = "Impacto social",
+                    descripcion = "Nuestro trabajo",
+                    icono = Icons.Default.Favorite,
+                    modifier = Modifier.weight(1f),
+                    onClick = irImpacto
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+
+                AccesoInicioCard(
+                    titulo = "Contacto",
+                    descripcion = "Escríbenos",
+                    icono = Icons.Default.Email,
+                    modifier = Modifier.weight(1f),
+                    onClick = irContacto
+                )
+
+                AccesoInicioCard(
+                    titulo = "Mi cuenta",
+                    descripcion = "Accede a tu perfil",
+                    icono = Icons.Default.Person,
+                    modifier = Modifier.weight(1f),
+                    onClick = irPerfil
+                )
+            }
         }
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MenuCard(
-                titulo = "Catálogo",
-                icono = Icons.Default.ShoppingBag,
-                modifier = Modifier.weight(1f),
-                onClick = irCatalogo
-            )
-
-            MenuCard(
-                titulo = "Impacto social",
-                icono = Icons.Default.Favorite,
-                modifier = Modifier.weight(1f),
-                onClick = irImpacto
-            )
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            MenuCard(
-                titulo = "Colaboraciones",
-                icono = Icons.Default.Groups,
-                modifier = Modifier.weight(1f),
-                onClick = irColaboraciones
-            )
-
-            MenuCard(
-                titulo = "Contacto",
-                icono = Icons.Default.Email,
-                modifier = Modifier.weight(1f),
-                onClick = irContacto
-            )
-        }
+        // DESTACADO DE COLABORACIÓN
 
         Card(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ),
-            modifier = Modifier.fillMaxWidth()
+                containerColor = RojoClaro
+            )
         ) {
+
             Column(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                MenuCard(
-                    titulo = "Perfil y cámara",
-                    icono = Icons.Default.CameraAlt,
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = irPerfil
-                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.Groups,
+                        contentDescription = null,
+                        tint = RojoPrincipal,
+                        modifier = Modifier.size(28.dp)
+                    )
+
+                    Text(
+                        text = "Tu apoyo hace la diferencia",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = NegroPrincipal
+                    )
+                }
 
                 Text(
-                    text = "Tu colaboración importa",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = "Conoce las distintas maneras de apoyar " +
-                            "las iniciativas de CORPALIV y Alba Lab."
+                    text = "Descubre cómo colaborar con los " +
+                            "programas y proyectos de CORPALIV.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NegroPrincipal
                 )
 
                 Button(
                     onClick = irColaboraciones,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RojoPrincipal
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Quiero colaborar")
+
+                    Text(
+                        text = "Quiero colaborar",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        // ACCESO A PROGRAMAS Y CATÁLOGO
+
+        Text(
+            text = "También puedes explorar nuestros programas " +
+                    "y catálogo desde la barra inferior.",
+            style = MaterialTheme.typography.bodySmall,
+            color = GrisTexto
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
 @Composable
-private fun MenuCard(
+private fun AccesoInicioCard(
     titulo: String,
+    descripcion: String,
     icono: ImageVector,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+
     Card(
         modifier = modifier
-            .height(130.dp)
+            .heightIn(min = 148.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 3.dp
-        ),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.White
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = GrisClaro
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
         )
     ) {
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Icon(
-                imageVector = icono,
-                contentDescription = null,
-                tint = RojoPrincipal,
-                modifier = Modifier.size(30.dp)
-            )
+
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = RojoClaro
+            ) {
+
+                Icon(
+                    imageVector = icono,
+                    contentDescription = null,
+                    tint = RojoPrincipal,
+                    modifier = Modifier.padding(10.dp)
+                )
+            }
 
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = NegroPrincipal
+            )
+
+            Text(
+                text = descripcion,
+                style = MaterialTheme.typography.bodySmall,
+                color = GrisTexto
             )
         }
     }
