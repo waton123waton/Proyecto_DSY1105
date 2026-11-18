@@ -123,6 +123,8 @@ fun ProgramasScreen(
             }
         }
 
+        FeriadosSection()
+
         OutlinedButton(
             onClick = volver,
             modifier = Modifier.fillMaxWidth()

@@ -1,153 +1,75 @@
-
 package com.example.proyecto_dsy1105.repository
 
 import android.content.Context
 import com.example.proyecto_dsy1105.model.SolicitudContacto
-import org.json.JSONArray
-import org.json.JSONObject
+import com.example.proyecto_dsy1105.network.ActualizarEstadoApi
+import com.example.proyecto_dsy1105.network.NuevaSolicitudApi
+import com.example.proyecto_dsy1105.network.ServicioSolicitudesApi
+import com.example.proyecto_dsy1105.network.SolicitudRespuestaApi
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class SolicitudContactoRepository(context: Context) {
 
-    private val preferencias = context.applicationContext
-        .getSharedPreferences(
-            "solicitudes_corpaliv",
-            Context.MODE_PRIVATE
-        )
+    private val servicio = Retrofit.Builder()
+        .baseUrl("http://10.0.2.2:8080/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+        .create(ServicioSolicitudesApi::class.java)
 
-    private val claveSolicitudes = "solicitudes"
-
-    // Guardar una nueva solicitud
     fun guardarSolicitud(solicitud: SolicitudContacto): Boolean {
-        return try {
-            val solicitudes = JSONArray(
-                preferencias.getString(
-                    claveSolicitudes,
-                    "[]"
-                ) ?: "[]"
-            )
-
-            val nuevaSolicitud = JSONObject().apply {
-                put("id", solicitud.id)
-                put("nombre", solicitud.nombre)
-                put("correo", solicitud.correo)
-                put(
-                    "tipoColaboracion",
-                    solicitud.tipoColaboracion
+        return runCatching {
+            servicio.crear(
+                NuevaSolicitudApi(
+                    nombre = solicitud.nombre,
+                    correo = solicitud.correo,
+                    tipoColaboracion = solicitud.tipoColaboracion,
+                    mensaje = solicitud.mensaje
                 )
-                put("mensaje", solicitud.mensaje)
-                put("fechaCreacion", solicitud.fechaCreacion)
-                put("estado", solicitud.estado)
-            }
-
-            solicitudes.put(nuevaSolicitud)
-
-            preferencias.edit()
-                .putString(
-                    claveSolicitudes,
-                    solicitudes.toString()
-                )
-                .commit()
-
-        } catch (e: Exception) {
-            false
-        }
+            ).execute().isSuccessful
+        }.getOrDefault(false)
     }
 
-    // Recuperar las solicitudes guardadas
     fun obtenerSolicitudes(): List<SolicitudContacto> {
-        return try {
-            val solicitudes = JSONArray(
-                preferencias.getString(
-                    claveSolicitudes,
-                    "[]"
-                ) ?: "[]"
-            )
-
-            val lista = mutableListOf<SolicitudContacto>()
-
-            for (i in 0 until solicitudes.length()) {
-                val objeto = solicitudes.getJSONObject(i)
-
-                val solicitud = SolicitudContacto(
-                    id = objeto.getString("id"),
-                    nombre = objeto.getString("nombre"),
-                    correo = objeto.getString("correo"),
-                    tipoColaboracion = objeto.getString(
-                        "tipoColaboracion"
-                    ),
-                    mensaje = objeto.getString("mensaje"),
-                    fechaCreacion = objeto.optLong(
-                        "fechaCreacion",
-                        0L
-                    ),
-                    estado = objeto.optString(
-                        "estado",
-                        "Pendiente"
-                    )
-                )
-
-                lista.add(solicitud)
-            }
-
-            lista.sortedByDescending {
-                it.fechaCreacion
-            }
-
-        } catch (e: Exception) {
-            emptyList()
+        val respuesta = servicio.listar().execute()
+        if (!respuesta.isSuccessful) {
+            throw IllegalStateException("Error HTTP: ${respuesta.code()}")
         }
+        return respuesta.body().orEmpty().map { it.aSolicitudLocal() }
+            .sortedByDescending { it.fechaCreacion }
     }
 
-    // Actualizar el estado de una solicitud
-    fun actualizarEstado(
-        id: String,
-        nuevoEstado: String
-    ): Boolean {
-
-        if (
-            nuevoEstado !in listOf(
-                "Pendiente",
-                "En revisión",
-                "Resuelta"
-            )
-        ) {
+    fun actualizarEstado(id: String, nuevoEstado: String): Boolean {
+        if (nuevoEstado !in listOf("Pendiente", "En revisión", "Resuelta")) {
             return false
         }
+        val numeroId = id.toLongOrNull() ?: return false
+        return runCatching {
+            servicio.cambiarEstado(
+                numeroId,
+                ActualizarEstadoApi(nuevoEstado)
+            ).execute().isSuccessful
+        }.getOrDefault(false)
+    }
 
-        return try {
-            val solicitudes = JSONArray(
-                preferencias.getString(
-                    claveSolicitudes,
-                    "[]"
-                ) ?: "[]"
-            )
+    private fun SolicitudRespuestaApi.aSolicitudLocal(): SolicitudContacto {
+        val fecha = runCatching {
+            LocalDateTime.parse(fechaCreacion)
+                .atZone(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli()
+        }.getOrDefault(0L)
 
-            var encontrada = false
-
-            for (i in 0 until solicitudes.length()) {
-
-                val objeto = solicitudes.getJSONObject(i)
-
-                if (objeto.getString("id") == id) {
-                    objeto.put("estado", nuevoEstado)
-                    encontrada = true
-                    break
-                }
-            }
-
-            if (encontrada) {
-                preferencias.edit()
-                    .putString(
-                        claveSolicitudes,
-                        solicitudes.toString()
-                    )
-                    .commit()
-            } else {
-                false
-            }
-
-        } catch (e: Exception) {
-            false
-        }
+        return SolicitudContacto(
+            id = id.toString(),
+            nombre = nombre,
+            correo = correo,
+            tipoColaboracion = tipoColaboracion,
+            mensaje = mensaje,
+            fechaCreacion = fecha,
+            estado = estado ?: "Pendiente"
+        )
     }
 }
