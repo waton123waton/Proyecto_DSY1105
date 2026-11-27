@@ -62,3 +62,38 @@ Para compilar desde la terminal en Windows:
 - Verificar las animaciones y los recursos nativos solicitados en la rúbrica.
 - Asociar una fotografía diferente a cada cuenta.
 - Integrar una API REST en una versión futura.
+
+
+## Generación e Instalación del APK Firmado
+
+La aplicación cuenta con una versión de producción (`release`) compilada y firmada digitalmente mediante **APK Signature Scheme v2** (RSA 2048 bits).
+
+## Detalles de la compilación
+- **Package Name:** `com.example.proyecto_dsy1105`
+- **Versión:** `1.0` (`versionCode: 1`)
+- **Archivo generado:** `app-release.apk`
+- **Ubicación local por defecto:** `app/build/outputs/apk/release/app-release.apk`
+- **Compatibilidad:** Android 7.0 (API 24) o superior.
+
+## Cómo instalar el APK
+1. Descarga o copia el archivo `app-release.apk` en tu dispositivo Android (o arrástralo sobre un emulador en ejecución en Android Studio).
+2. En el dispositivo, abre el archivo desde el administrador de archivos.
+3. Si el sistema lo solicita, habilita la opción **Instalar aplicaciones de origen desconocido** y confirma la instalación.
+
+## Nota sobre la firma digital (Keystore)
+- Por motivos de seguridad, el archivo de firma privada (`Key` / `.jks`) y sus credenciales **no se incluyen en este repositorio**.
+- Para generar una nueva compilación firmada en Android Studio:
+  1. Ir a **Build > Generate Signed App Bundle / APK...**
+  2. Seleccionar **APK** y cargar el archivo `Key` local junto con su alias y contraseña.
+  3. Elegir la variante **release** y finalizar la compilación.
+
+  Imagen de verificacion de firma digital
+
+<img width="963" height="616" alt="image" src="https://github.com/user-attachments/assets/2ec837c0-e75c-4e74-8867-158dcc419cad" />
+
+Y jks
+
+<img width="83" height="94" alt="image" src="https://github.com/user-attachments/assets/3848e3a5-9c57-4179-a6ee-b5854d049968" />
+
+
+  
